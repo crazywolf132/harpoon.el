@@ -1,4 +1,3 @@
-
 ;;; harpoon-data.el --- Data persistence for Harpoon -*- lexical-binding: t -*-
 
 ;;; Commentary:
@@ -32,7 +31,11 @@
     (if (file-exists-p file)
         (with-temp-buffer
           (insert-file-contents file)
-          (json-read))
+          (condition-case nil
+              (json-read)
+            (error (progn
+                     (harpoon-logger-log "Error reading data file.")
+                     '()))))
       (progn
         (harpoon-data-write config '())
         '()))))
@@ -51,13 +54,18 @@
 
 (defun harpoon-data-sync (data lists)
   "Sync DATA with LISTS."
-  (maphash (lambda (key list)
-             (let ((encoded (mapcar (lambda (item)
-                                      (funcall (plist-get (harpoon-config-get (harpoon-config-default) nil) :encode)
-                                               item))
-                                    (harpoon-list-items list))))
-               (harpoon-data-write (harpoon-config-default) encoded)))
-           lists))
+  (maphash
+   (lambda (_key list)
+     (let* ((items (harpoon-list-items list))
+            (encoded (cl-remove-if-not
+                      'identity
+                      (mapcar (lambda (item)
+                                (let ((encode-fn (plist-get (harpoon-list-config list) :encode)))
+                                  (when encode-fn
+                                    (funcall encode-fn item))))
+                              items))))
+       (harpoon-data-write (harpoon-list-config list) encoded)))
+   lists))
 
 (provide 'harpoon-data)
 

@@ -8,11 +8,13 @@
 
 (require 'harpoon-ui)
 
-(defun harpoon-buffer-setup-keymaps (buffer)
-  "Set up keymaps for BUFFER."
-  (with-current-buffer buffer
-    (local-set-key (kbd "q") 'harpoon-ui-close-menu)
-    (local-set-key (kbd "RET") 'harpoon-ui-select-item)))
+(defun harpoon-buffer-setup-keymaps (_buffer)
+  "Set up keymaps for the current Harpoon buffer."
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") 'harpoon-ui-close-menu)
+    (define-key map (kbd "RET") 'harpoon-ui-select-item)
+    (define-key map (kbd "<escape>") 'harpoon-ui-close-menu)
+    (use-local-map map)))
 
 (defun harpoon-buffer-get-contents (buffer)
   "Get the contents of BUFFER as a list of lines."

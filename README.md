@@ -29,6 +29,10 @@
 - [Customization](#customization)
   - [Changing Key Bindings](#changing-key-bindings)
   - [Configuration](#configuration)
+    - [Settings](#settings)
+    - [Customizing Lists](#customizing-lists)
+    - [Extending Harpoon](#extending-harpoon)
+- [Logger](#logger)
 - [Credits](#credits)
 - [License](#license)
 
@@ -50,6 +54,7 @@ Harpoon.el allows you to mark files and buffers, access them quickly through a m
 - **Extensibility**: Define custom behaviors and actions for your lists.
 - **Persistence**: Harpoon.el remembers your marks between sessions.
 - **Integration**: Works seamlessly with popular Emacs distributions like Spacemacs and Doom Emacs.
+- **Logger**: Built-in logging utility to help with debugging and development.
 
 ---
 
@@ -61,22 +66,28 @@ You can install Harpoon.el manually or through package managers like [MELPA](htt
 
 #### Manual Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
 
    ```shell
    git clone https://github.com/crazywolf132/harpoon.el.git
    ```
 
-2. Add the directory to your Emacs `load-path`:
+2. **Add the directory to your Emacs `load-path`:**
 
    ```elisp
    (add-to-list 'load-path "/path/to/harpoon.el/")
    ```
 
-3. Require Harpoon in your Emacs configuration:
+3. **Require Harpoon in your Emacs configuration:**
 
    ```elisp
    (require 'harpoon)
+   ```
+
+4. **Set up Harpoon:**
+
+   ```elisp
+   (harpoon-setup)
    ```
 
 ### For Spacemacs
@@ -89,7 +100,7 @@ dotspacemacs-additional-packages '(
 )
 ```
 
-Then, require Harpoon in your user configuration:
+Then, require and set up Harpoon in your user configuration:
 
 ```elisp
 (defun dotspacemacs/user-config ()
@@ -281,44 +292,128 @@ To configure Harpoon, you can pass an optional configuration to `harpoon-setup`:
 
 #### Customizing Lists
 
-You can create custom lists and define their behaviors:
+You can create custom lists and define their behaviors by providing custom configurations. Here's an example of creating a custom list named `"commands"` that allows you to execute shell commands:
 
 ```elisp
 (harpoon-setup
- '(:lists ((:name "commands"
-            :select-with-nil t
-            :select (lambda (item _list _options)
-                      (when item
-                        (shell-command (plist-get item :value)))))
-           (:name "buffers"
-            :display (lambda (item)
-                       (format "Buffer: %s" (plist-get item :value)))
-            :select (lambda (item _list _options)
-                      (when item
-                        (switch-to-buffer (plist-get item :value))))))))
+ `(:lists ((:name "commands"
+             :select-with-nil t
+             :create-list-item ,(lambda (_config &optional name)
+                                  (let ((cmd (or name
+                                                 (read-string "Enter command: "))))
+                                    (list :value cmd :context nil)))
+             :select ,(lambda (item _list _options)
+                        (when item
+                          (shell-command (plist-get item :value)))))
+            (:name "buffers"
+             :display ,(lambda (item)
+                         (format "Buffer: %s" (plist-get item :value)))
+             :select ,(lambda (item _list _options)
+                        (when item
+                          (switch-to-buffer (plist-get item :value))))))))
 ```
+
+In this configuration:
+
+- **`commands` List:**
+  - **`select-with-nil`:** Allows selection even if the item is `nil`.
+  - **`create-list-item`:** Prompts the user to enter a command.
+  - **`select`:** Executes the command when selected.
+
+- **`buffers` List:**
+  - **`display`:** Custom display format for buffer items.
+  - **`select`:** Switches to the buffer when selected.
 
 #### Extending Harpoon
 
-You can add custom actions and key bindings by extending Harpoon's functionality:
+You can add custom actions and key bindings by extending Harpoon's functionality using the extensions system.
+
+**Example: Adding Keybindings for Splits and Tabs**
 
 ```elisp
-(harpoon-extensions-add-listener
- (harpoon-extensions (harpoon--init))
- '((ui-create . (lambda (context)
-                  ;; Add keybinding for vertical split
-                  (define-key (current-local-map) (kbd "C-v")
-                    (lambda () (interactive)
-                      (harpoon-ui-select-item :vsplit t)))
-                  ;; Add keybinding for horizontal split
-                  (define-key (current-local-map) (kbd "C-x")
-                    (lambda () (interactive)
-                      (harpoon-ui-select-item :split t)))
-                  ;; Add keybinding for opening in new tab
-                  (define-key (current-local-map) (kbd "C-t")
-                    (lambda () (interactive)
-                      (harpoon-ui-select-item :tab t)))))))
+(let ((extensions (harpoon-extensions (harpoon--init))))
+  (harpoon-extensions-add-listener
+   extensions
+   `((ui-create . ,(lambda (context)
+                     ;; Add keybinding for vertical split
+                     (define-key (current-local-map) (kbd "C-v")
+                       (lambda () (interactive)
+                         (harpoon-ui-select-item :vsplit t)))
+                     ;; Add keybinding for horizontal split
+                     (define-key (current-local-map) (kbd "C-x")
+                       (lambda () (interactive)
+                         (harpoon-ui-select-item :split t)))
+                     ;; Add keybinding for opening in new tab
+                     (define-key (current-local-map) (kbd "C-t")
+                       (lambda () (interactive)
+                         (harpoon-ui-select-item :tab t))))))))
 ```
+
+**Explanation:**
+
+- **`ui-create` Event:** We add a listener for the `ui-create` event, which is emitted when the Harpoon UI is created.
+- **Keybindings:**
+  - **`C-v`:** Opens the selected file in a vertical split.
+  - **`C-x`:** Opens the selected file in a horizontal split.
+  - **`C-t`:** Opens the selected file in a new tab (Emacs does not have tabs by default, but you can integrate with packages like `tab-bar-mode`).
+
+**Note:** You may need to adjust the `harpoon-ui-select-item` function to handle these options, or customize the select function in your configuration to handle splits and tabs.
+
+---
+
+## Logger
+
+Harpoon.el includes a built-in logger to help with debugging and development. You can use the logger to view internal messages and diagnose issues.
+
+### Using the Logger
+
+- **Show the Log Buffer:**
+
+  ```elisp
+  (harpoon-logger-show)
+  ```
+
+  This command will display the Harpoon log in a buffer called `*Harpoon Log*`.
+
+- **Clear the Log:**
+
+  ```elisp
+  (harpoon-logger-clear)
+  ```
+
+- **Log Messages:**
+
+  The logger is used internally by Harpoon, but you can also log custom messages:
+
+  ```elisp
+  (harpoon-logger-log "This is a custom log message.")
+  ```
+
+### Debugging Steps
+
+If you encounter issues with Harpoon.el:
+
+1. **Open a New Emacs Instance:**
+
+   Start Emacs without any additional configurations that might interfere.
+
+2. **Perform the Steps to Reproduce the Issue:**
+
+   Use Harpoon as you normally would to trigger the issue.
+
+3. **View the Log:**
+
+   ```elisp
+   (harpoon-logger-show)
+   ```
+
+4. **Copy the Log:**
+
+   Copy the contents of the `*Harpoon Log*` buffer.
+
+5. **Report the Issue:**
+
+   Provide the log when reporting issues to help with debugging.
 
 ---
 

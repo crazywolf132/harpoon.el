@@ -69,7 +69,8 @@
   "Add the current file to Harpoon's list."
   (interactive)
   (let ((instance (harpoon--init)))
-    (harpoon-list-add (harpoon-get-list instance) (buffer-file-name))))
+    (harpoon-list-add (harpoon-get-list instance) nil)
+    (harpoon-sync)))
 
 ;;;###autoload
 (defun harpoon-toggle-quick-menu ()
@@ -78,14 +79,14 @@
   (let ((instance (harpoon--init)))
     (harpoon-ui-toggle-quick-menu (harpoon-ui instance) (harpoon-get-list instance))))
 
-(defun harpoon-get-list (&optional name)
+(defun harpoon-get-list (&optional instance name)
   "Retrieve or create a Harpoon list by NAME."
-  (let* ((instance (harpoon--init))
+  (let* ((instance (or instance (harpoon--init)))
          (key (harpoon-config-key (harpoon-config instance)))
          (lists (harpoon-lists instance))
          (list (gethash key lists)))
     (unless list
-      (setq list (harpoon-list-create (harpoon-config-get (harpoon-config instance) name)))
+      (setq list (harpoon-list-create (harpoon-config-get (harpoon-config instance) name) name))
       (puthash key list lists)
       (harpoon-extensions-emit (harpoon-extensions instance) 'list-created list))
     list))

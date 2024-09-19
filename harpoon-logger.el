@@ -1,4 +1,3 @@
-
 ;;; harpoon-logger.el --- Logging utilities for Harpoon -*- lexical-binding: t -*-
 
 ;;; Commentary:
@@ -37,10 +36,16 @@
   "Display the harpoon log in a buffer."
   (interactive)
   (with-current-buffer (get-buffer-create "*Harpoon Log*")
-    (erase-buffer)
-    (insert (string-join harpoon-logger-lines "\n"))
-    (goto-char (point-min))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (insert (string-join harpoon-logger-lines "\n"))
+      (goto-char (point-min)))
     (display-buffer (current-buffer))))
+
+(defun harpoon-logger-create ()
+  "Create a new Harpoon logger instance."
+  ;; In this implementation, the logger is stateless, so we can return nil or self-reference
+  'harpoon-logger)
 
 (provide 'harpoon-logger)
 
