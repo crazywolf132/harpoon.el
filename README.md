@@ -23,7 +23,12 @@
   - [For Doom Emacs](#for-doom-emacs)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
-- [Configuration](#configuration)
+  - [Adding Files](#adding-files)
+  - [Navigating Files](#navigating-files)
+  - [Managing Marks](#managing-marks)
+- [Customization](#customization)
+  - [Changing Key Bindings](#changing-key-bindings)
+  - [Configuration](#configuration)
 - [Credits](#credits)
 - [License](#license)
 
@@ -115,28 +120,11 @@ In your `config.el`, require and set up Harpoon:
 
 ## Getting Started
 
-### Basic Setup
-
 First, ensure that Harpoon is properly installed and required in your Emacs configuration. Then, initialize Harpoon by calling `harpoon-setup`:
 
 ```elisp
 (require 'harpoon)
 (harpoon-setup)
-```
-
-### Key Bindings
-
-Set up key bindings to add files, toggle the quick menu, and navigate between your marked files:
-
-```elisp
-(global-set-key (kbd "C-c h a") 'harpoon-add-file)
-(global-set-key (kbd "C-c h t") 'harpoon-toggle-quick-menu)
-
-;; Navigate to files by index
-(global-set-key (kbd "C-c h 1") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 1)))
-(global-set-key (kbd "C-c h 2") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 2)))
-(global-set-key (kbd "C-c h 3") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 3)))
-(global-set-key (kbd "C-c h 4") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 4)))
 ```
 
 ---
@@ -145,11 +133,11 @@ Set up key bindings to add files, toggle the quick menu, and navigate between yo
 
 ### Adding Files
 
-- **Add Current File to Harpoon**: Press `C-c h a` to add the current file to your Harpoon list.
+- **Add Current File to Harpoon**: Press `C-c h a` (or your chosen keybinding) to add the current file to your Harpoon list.
 
 ### Navigating Files
 
-- **Toggle Quick Menu**: Press `C-c h t` to open or close the Harpoon quick menu.
+- **Toggle Quick Menu**: Press `C-c h t` (or your chosen keybinding) to open or close the Harpoon quick menu.
 - **Navigate to Marked Files**: Use `C-c h 1`, `C-c h 2`, etc., to jump to the files you've marked.
 - **Quick Navigation**: Within the quick menu, select a file to jump to it.
 
@@ -160,11 +148,121 @@ Set up key bindings to add files, toggle the quick menu, and navigate between yo
 
 ---
 
-## Configuration
+## Customization
+
+### Changing Key Bindings
+
+Harpoon.el does not enforce any default keybindings, allowing you to customize them according to your preferences. Here's how you can set up and change the keybindings:
+
+#### Example Key Bindings
+
+```elisp
+;; Require Harpoon and set up
+(require 'harpoon)
+(harpoon-setup)
+
+;; Key bindings
+(global-set-key (kbd "C-c h a") 'harpoon-add-file)             ; Add file
+(global-set-key (kbd "C-c h t") 'harpoon-toggle-quick-menu)    ; Toggle menu
+
+;; Navigate to files by index (change the keybindings as desired)
+(global-set-key (kbd "C-c h 1") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 1)))
+(global-set-key (kbd "C-c h 2") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 2)))
+(global-set-key (kbd "C-c h 3") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 3)))
+(global-set-key (kbd "C-c h 4") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 4)))
+```
+
+#### Customizing Key Bindings
+
+You can change the keybindings to whatever suits your workflow. For example:
+
+```elisp
+;; Use F5 to add the current file
+(global-set-key (kbd "<f5>") 'harpoon-add-file)
+
+;; Use F6 to toggle the quick menu
+(global-set-key (kbd "<f6>") 'harpoon-toggle-quick-menu)
+
+;; Use Alt + number keys to navigate
+(global-set-key (kbd "M-1") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 1)))
+(global-set-key (kbd "M-2") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 2)))
+(global-set-key (kbd "M-3") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 3)))
+(global-set-key (kbd "M-4") (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 4)))
+```
+
+Feel free to assign any key combinations that don't conflict with your existing keybindings.
+
+#### Using `use-package`
+
+If you use `use-package`, you can define keybindings within its configuration:
+
+```elisp
+(use-package harpoon
+  :config
+  (harpoon-setup)
+  :bind
+  (("C-c h a" . harpoon-add-file)
+   ("C-c h t" . harpoon-toggle-quick-menu)
+   ("C-c h 1" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 1)))
+   ("C-c h 2" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 2)))
+   ("C-c h 3" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 3)))
+   ("C-c h 4" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 4)))))
+```
+
+#### For Spacemacs Users
+
+In Spacemacs, you can customize keybindings in your `dotspacemacs/user-config` function:
+
+```elisp
+(defun dotspacemacs/user-config ()
+  (require 'harpoon)
+  (harpoon-setup)
+
+  ;; Key bindings
+  (spacemacs/set-leader-keys
+    "ah" 'harpoon-add-file              ; Add file (leader + a h)
+    "at" 'harpoon-toggle-quick-menu     ; Toggle menu (leader + a t)
+    "a1" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 1))
+    "a2" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 2))
+    "a3" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 3))
+    "a4" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 4))))
+```
+
+#### For Doom Emacs Users
+
+In Doom Emacs, you can set keybindings in your `config.el`:
+
+```elisp
+(use-package harpoon
+  :config
+  (harpoon-setup)
+  :bind
+  (("C-c h a" . harpoon-add-file)
+   ("C-c h t" . harpoon-toggle-quick-menu)
+   ("C-c h 1" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 1)))
+   ("C-c h 2" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 2)))
+   ("C-c h 3" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 3)))
+   ("C-c h 4" . (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 4)))))
+```
+
+Alternatively, you can use Doom's keybinding macros:
+
+```elisp
+(map! :leader
+      (:prefix ("h" . "harpoon")
+       :desc "Add file" "a" #'harpoon-add-file
+       :desc "Toggle menu" "t" #'harpoon-toggle-quick-menu
+       :desc "Go to file 1" "1" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 1))
+       :desc "Go to file 2" "2" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 2))
+       :desc "Go to file 3" "3" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 3))
+       :desc "Go to file 4" "4" (lambda () (interactive) (harpoon-list-select (harpoon-get-list) 4))))
+```
+
+### Configuration
 
 Harpoon.el is highly customizable. You can adjust settings and define custom behaviors for your lists.
 
-### Settings
+#### Settings
 
 To configure Harpoon, you can pass an optional configuration to `harpoon-setup`:
 
@@ -175,13 +273,13 @@ To configure Harpoon, you can pass an optional configuration to `harpoon-setup`:
                :key (lambda () (projectile-project-root)))))
 ```
 
-#### Available Settings
+##### Available Settings
 
 - `:save-on-toggle` (boolean): Save the state when toggling the quick menu. Default is `nil`.
 - `:sync-on-ui-close` (boolean): Sync the state to disk when closing the UI. Default is `nil`.
 - `:key` (function): Function to determine the key for storing lists, allowing project-specific marks.
 
-### Customizing Lists
+#### Customizing Lists
 
 You can create custom lists and define their behaviors:
 
@@ -200,7 +298,7 @@ You can create custom lists and define their behaviors:
                         (switch-to-buffer (plist-get item :value))))))))
 ```
 
-### Extending Harpoon
+#### Extending Harpoon
 
 You can add custom actions and key bindings by extending Harpoon's functionality:
 
@@ -208,12 +306,15 @@ You can add custom actions and key bindings by extending Harpoon's functionality
 (harpoon-extensions-add-listener
  (harpoon-extensions (harpoon--init))
  '((ui-create . (lambda (context)
+                  ;; Add keybinding for vertical split
                   (define-key (current-local-map) (kbd "C-v")
                     (lambda () (interactive)
                       (harpoon-ui-select-item :vsplit t)))
+                  ;; Add keybinding for horizontal split
                   (define-key (current-local-map) (kbd "C-x")
                     (lambda () (interactive)
                       (harpoon-ui-select-item :split t)))
+                  ;; Add keybinding for opening in new tab
                   (define-key (current-local-map) (kbd "C-t")
                     (lambda () (interactive)
                       (harpoon-ui-select-item :tab t)))))))
